@@ -1,11 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createClient } from "./server";
+import { revalidatePath } from "next/cache";
 
-import { createClient } from "@/utils/supabase/server";
-
-export async function login(formData: FormData) {
+export async function emailLogin(formData: FormData) {
     const supabase = await createClient();
 
     // type-casting here for convenience
@@ -22,7 +21,7 @@ export async function login(formData: FormData) {
     }
 
     revalidatePath("/", "layout");
-    redirect("/");
+    redirect("/todos");
 }
 
 export async function signup(formData: FormData) {
@@ -42,13 +41,13 @@ export async function signup(formData: FormData) {
     }
 
     revalidatePath("/", "layout");
-    redirect("/");
+    redirect("/login");
 }
 
 export async function googleAuth() {
     const supabase = await createClient();
 
-    let { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
     });
 
@@ -58,4 +57,20 @@ export async function googleAuth() {
 
     revalidatePath("/", "layout");
     redirect("/");
+}
+
+export async function signOut() {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    revalidatePath("/", "layout");
+    redirect("/login");
+}
+
+export async function isAuthenticated() {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data?.user) {
+        redirect("/login");
+    }
+    return data.user;
 }
