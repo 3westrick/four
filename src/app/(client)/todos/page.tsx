@@ -1,10 +1,10 @@
-import { isAuthenticated } from "@/utils/supabase/auth";
+import { getTodos } from "@/features/todos/actions";
+import { isAuthenticatedOrRedirect } from "@/utils/supabase/auth";
+import Todos from "./Todos";
 
 export default async function PrivatePage() {
-  const user = await isAuthenticated();
-  return (
-    <div className="rounded border border-dashed border-stone-700 p-4">
-      <p>Hello {user.email}</p>
-    </div>
-  );
+  await isAuthenticatedOrRedirect();
+  const todos = await getTodos();
+
+  return <Todos todos={todos} />;
 }

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "./server";
 import { revalidatePath } from "next/cache";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export async function emailLogin(formData: FormData) {
   const supabase = await createClient();
@@ -68,14 +69,21 @@ export async function signOut() {
 
 export async function isAuthenticated() {
   const user = await getUser();
+  return !!user;
+}
+
+export async function isAuthenticatedOrRedirect(path: string = "/login") {
+  const user = await getUser();
   if (!user) {
-    redirect("/login");
+    redirect(path);
   }
   return user;
 }
 
-export async function getUser() {
-  const supabase = await createClient();
+export async function getUser(supabase?: SupabaseClient) {
+  if (!supabase) {
+    supabase = await createClient();
+  }
   const { data, error } = await supabase.auth.getUser();
   if (error || !data?.user) {
     return null;
